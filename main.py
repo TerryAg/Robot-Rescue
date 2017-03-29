@@ -35,8 +35,9 @@ def turn(timeturn, direc):
 	"""
 	#rightMotor.run_direct(duty_cycle_sp=99)
 	#leftMotor.run_direct(duty_cycle_sp=-99)
-	leftMotor.run_timed(speed_sp=-1*direc*1000, time_sp=timeturn*1000) #turning
-	rightMotor.run_timed(speed_sp=direc*1000, time_sp=timeturn*1000)
+	timeturn*=1500
+	leftMotor.run_timed(speed_sp=direc*1000, time_sp=timeturn) #turning
+	rightMotor.run_timed(speed_sp=-1*direc*1000, time_sp=timeturn)
 	time.sleep(1)
 
 #check around until us.distance() is close
@@ -129,7 +130,7 @@ if not found:
 
 # then get angle and turn wheels there after the 3 seconds
 
-if timeDifference > 0.6: # half way?
+if timeDifference > 0.5: # half way?
 	direction = -1
 
 time.sleep(0.1)
