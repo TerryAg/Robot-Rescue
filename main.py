@@ -18,22 +18,24 @@ def startup():
 			return backspace_click
 
 def locate(sensorDirection):
-	timeBefore = time.time()
-	sensorMotor.run_timed(speed_sp=sensorDirection*350, time_sp=1200)
+	initialTime = time.time()
+	sensorTime = 1200
+	sensorMotor.run_timed(speed_sp=sensorDirection*350, time_sp=sensorTime)
 	while True:
 		distance = us.value()
 		print(distance)
+		timePassed = time.time()
+		timeDifference = timePassed - initialTime
 		if distance < 300:
-			timeAfter = time.time()
-			timeDifference = timeAfter - timeBefore
-			sensorMotor.run_direct(duty_cycle_sp=0)
+			sensorMotor.run_direct(duty_cycle_sp=0) # Stop motor
+			# PROBLEM: Motor goes a little bit more even after finding
 			print("FOUND AFTER {} SECONDS".format(timeDifference))
 			Sound.speak("f").wait()
-			found = True
 			return timeDifference
-		if (time.time() - timeBefore)*1000 > 1200:
-			print("Nothing found")
-			sensorDirection = 1 if sensorDirection == -1 else -1
+
+		if timeDifference*1000 > sensorTime:
+			print("NOTHING FOUND")
+			sensorDirection = -1 if sensorDirection == 1 else 1
 			return locate(sensorDirection) # Backtrack
 
 def turn(turningTime, motorDirection):
@@ -49,7 +51,6 @@ def drive():
 	# Touch sensor?
 
 def main():
-	sensorDirection = 1
 	timeTaken = locate(sensorDirection)
 	if timeTaken > 0.6:
 		timeTaken = 1.2 - timeTaken
@@ -64,5 +65,6 @@ def main():
 time.sleep(0.1)
 
 if __name__ == '__main__':
+	sensorDirection = 1
 	startup(); assert backspace_click
 	main()
