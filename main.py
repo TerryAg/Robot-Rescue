@@ -5,38 +5,53 @@ rightMotor = LargeMotor(OUTPUT_A)
 leftMotor = LargeMotor(OUTPUT_D)
 sensorMotor = Motor(OUTPUT_C)
 us = UltrasonicSensor(INPUT_1); assert us.connected
-
 btn = Button()
 
+# Global variables
+sumoDistance = 300 # Distance between our robot and their robot
+
 def startup():
+	"""A function which detects whether the backspace button is pressed.
+
+	Used for determining when to start the actual sumo robot."""
 	backspace_click = False
 	print("READY: ")
 	while not backspace_click:
 		if btn.backspace:
 			backspace_click = True
-			time.sleep(2)
+			time.sleep(3)
 			return backspace_click
 
-def locate(sensorDirection):
+def locate(sensorDirection, delay=0):# Need to change this to have an in-built delay
 	initialTime = time.time()
 	sensorTime = 1200
 	sensorMotor.run_timed(speed_sp=sensorDirection*350, time_sp=sensorTime)
-	while True:
+	# can sensorMotor use duty_cycle_sp? if so use it. then sensorTime isn't needed
+	while True: # Change this to have an actual condition, simlar to drive()
 		distance = us.value()
 		print(distance)
 		timePassed = time.time()
 		timeDifference = timePassed - initialTime
-		if distance < 300:
+		if distance < sumoDistance:
 			sensorMotor.run_direct(duty_cycle_sp=0) # Stop motor
 			# PROBLEM: Motor goes a little bit more even after finding
 			print("FOUND AFTER {} SECONDS".format(timeDifference))
 			Sound.speak("f").wait()
-			return timeDifference
+			if timeDifference > 0.6: # More than half way
+				timeDifference = 1.2 - timeDifference
+				motorDirection = -1
+			else:
+				motorDirection = 1
+			return timeDifference, motorDirection
 
 		if timeDifference*1000 > sensorTime:
 			print("NOTHING FOUND")
 			sensorDirection = -1 if sensorDirection == 1 else 1
 			return locate(sensorDirection) # Backtrack
+
+	time.sleep(delay)
+	sensorMotor.run_timed(speed_sp=sensorDirection*-350, time_sp=timeDifference*1000)
+	# Reset sensor to beginning
 
 def turn(turningTime, motorDirection):
 	turningTime *= 1300
@@ -45,26 +60,33 @@ def turn(turningTime, motorDirection):
 	time.sleep(1)
 
 def drive():
-	leftMotor.run_timed(speed_sp=1050, time_sp=5000)
-	rightMotor.run_timed(speed_sp=1050, time_sp=5000)
-	time.sleep(5) # Enough time to charge other robot out. If not, then we re-locate?
+	while us.distance() < sumoDistance:
+		leftMotor.run_direct(duty_cycle_sp=100)
+		rightMotor.run_direct(duty_cycle_sp=100)
+		# in lecture today he did time.sleep(0.1) while using duty_cycle_sp
+		time.sleep(0.1)
+	 # Out of range of other robot -- WILL NEED CHANGING
+	timeTaken, motorDirection = locate(sensorDirection) # NO DELAY.
+	turn(timeTaken, motorDirection) # Directions for sensor/motor might need changes
+	
+
+		# if touch sensor touched: keep pushing, ignore other methods.
 	# Touch sensor?
 
+
 def main():
-	timeTaken = locate(sensorDirection)
-	if timeTaken > 0.6:
-		timeTaken = 1.2 - timeTaken
-		motorDirection = -1
-	else:
-		motorDirection = 1
+	"""Main function of the program."""
+	timeTaken, motorDirection = locate(sensorDirection, delay=3) # Won't exactly be 3... change.
 	print("TIME DIFFERENCE:", timeTaken)
 	turn(timeTaken, motorDirection)
-	drive()
-
-
-time.sleep(0.1)
+	while True:
+		drive()
 
 if __name__ == '__main__':
 	sensorDirection = 1
-	startup(); assert backspace_click
+	startup()
 	main()
+
+
+
+# duty_cycle_sp means percentage of how much power
