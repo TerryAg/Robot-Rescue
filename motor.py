@@ -1,12 +1,6 @@
 from ev3dev.ev3 import *
 import time
 
-rightMotor = LargeMotor(OUTPUT_A)
-leftMotor = LargeMotor(OUTPUT_D)
-sensorMotor = Motor(OUTPUT_C); assert sensorMotor.connected
-us = UltrasonicSensor(INPUT_1); assert us.connected
-btn = Button()
-
 def startup():
 	"""
 	A function run at the beginning of the program to determine
@@ -34,7 +28,7 @@ def locate():
 		print(distance)
 		if distance <= 300: # FOUND 
 			endTime = time.time()
-			if sensorMotor.position() > 180:
+			if sensorMotor.position() > 180: # NOT SURE IF WORKS
 				direction = -1
 			else:
 				direction = 1
@@ -74,6 +68,12 @@ def main():
 	"""
 	Main function of the program.
 	"""
+	rightMotor = LargeMotor(OUTPUT_A)
+	leftMotor = LargeMotor(OUTPUT_D)
+	sensorMotor = Motor(OUTPUT_C); assert sensorMotor.connected
+	us = UltrasonicSensor(INPUT_1); assert us.connected
+	btn = Button()
+
 	init = startup()
 	timeTaken, half = locate()
 	print("Time taken:", timeTaken)
