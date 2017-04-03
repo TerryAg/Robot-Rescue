@@ -24,7 +24,6 @@ def startup():
         backspace_pressed = btn.backspace
 
     sleep(3)
-    return time()
 
 def locate_first():
     sensorMotor.run_to_abs_pos(position_sp=160, speed_sp=250)
@@ -41,11 +40,11 @@ def locate_first():
         if not sensorMotor.state:
             print("turning around")
             sensorMotor.run_to_abs_pos(position_sp=-159, speed_sp=250)
-    # Afterlocate_first, reset motor back to 0
 
 def locate_subsequent():
     """
-    Different to first locate since now we are turning while locating -- not using sensorMotor
+    Different to first locate since now we are turning while locating 
+    -- not using sensorMotor
     """
     leftMotor.run_to_rel_pos(position_sp=360, speed_sp=250)
     rightMotor.run_to_rel_pos(position_sp=-360, speed_sp=250)
@@ -85,25 +84,23 @@ def main():
     """
     Main function of the program.
     """
-    #DIR = 1
     sensorMotor.position = 0
     leftMotor.position = 0
     rightMotor.position = 0 # Defining the starting point as 0
-    init = startup()
+    startup()
     pos, dirr = locate_first()
     sensorMotor.run_to_abs_pos(position_sp=0, speed_sp=700)
     #sleep(3 - (timeTaken - init))
     # Need to wait here until the 3 seconds are up
-    input("READY TO TURN FIRST TIME")
+   # input("READY TO TURN FIRST TIME")
     turn(3*pos, dirr)
-    input("IT HAS TURNED FOR THE FRIST TIME!!!")
+    #input("IT HAS TURNED FOR THE FRIST TIME!!!")
     while True:
-        input("READY TO DRIVE?")
+     #   input("READY TO DRIVE?")
         if drive() == "lost":
-            #DIR = -1 if DIR == 1 else 1
-            input("IT IS LOST... RELOCATING")
+      #      input("IT IS LOST... RELOCATING")
             locate_subsequent()
-            input("LOCATED!!!")
+       #     input("LOCATED!!!")
 
             #input("IT HAS TURNED")
         if btn.backspace: # Might need to change this to 'elif' if not possible
@@ -115,10 +112,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-def f(n, d):
-    leftMotor.run_to_abs_pos(position_sp=n*d)
-    rightMotor.run_to_abs_pos(position_sp=-1*n*d)
 
 #speed_regulation_enabled?
 # Can run_timed take position? prob not
