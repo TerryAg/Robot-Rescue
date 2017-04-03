@@ -15,6 +15,7 @@ def startup():
 	print("Ready to start. Press the backspace button to resume.\n")
 	while not backspace_pressed:
 		backspace_pressed = btn.backspace
+
 	return time()
 
 def locate():
@@ -25,21 +26,19 @@ def locate():
 	"""
 	initialTime = time()
 	sensorMotor.run_to_rel_pos(position_sp=350, speed_sp=BASE_MOTOR_SPEED) # rel_pos so it goes full cycle
-	distance = us.value()
+	distance = 2550 # Don't make it us.value() in case while loop doesn't run
 	while distance > ROBOT_DISTANCE:
 		distance = us.value()
 		print(distance)
 		if distance <= ROBOT_DISTANCE: # FOUND 
 			endTime = time()
+			sensorMotor.stop()
+			sensorMotor.run_to_abs_pos(position=0, speed_sp=1000)
 			if sensorMotor.position() > 180: # NOT SURE IF WORKS
 				direction = -1
 			else:
 				direction = 1
-			sensorMotor.stop()
-			sensorMotor.run_to_abs_pos(position=0, speed_sp=1000)
 			return (endTime-initialTime, direction)
-
-#speed_regulation_enabled?
 
 def turn(timeLength, direction):
 	"""
@@ -53,16 +52,17 @@ def turn(timeLength, direction):
 
 def drive():
 	"""
-	Drives the robot in the current direction - fast.
+	Drives the robot in the current direction as fast as it can.
 	"""
 	while us.value() < ROBOT_DISTANCE:
 		leftMotor.run_direct(duty_cycle_sp=100)
 		rightMotor.run_direct(duty_cycle_sp=100)
 		sleep(0.1)
+
+	print("Can't find other robot... Relocating")
 	leftMotor.stop()
 	rightMotor.stop()
-	return "Lost" # Position unknown
-
+	return "lost" # Position unknown
 
 def main():
 	"""
@@ -78,12 +78,13 @@ def main():
 	timeTaken, half = locate()
 	print("Time taken:", timeTaken)
 	sleep(3 - (timeTaken - init))
-	# Need to wait here for until the 3 seconds is up
+	# Need to wait here until the 3 seconds are up
 	turn(timeTaken, half)
 	while True:
-		if drive() == "Lost":
+		if drive() == "lost":
 			turn(*locate())
-		if btn.backspace:
+		if btn.backspace: # Might need to change this to 'elif' if not possible
+							# to turn program off while it's in drive()
 			leftMotor.stop()
 			rightMotor.stop()
 			print("Stopping...")
@@ -92,9 +93,6 @@ def main():
 if __name__ == '__main__':
 	main()
 
-#sensorMotor.run_direct(duty_cycle_sp=100)
-#sensorMotor.run_to_abs_pos(position_sp=180)
-#sensorMotor.run_timed(speed_sp=100, time_sp=600)
 
-
+#speed_regulation_enabled?
 # Can run_timed take position? prob not
