@@ -55,7 +55,7 @@ def turn(timeLength, direction):
 	"""
 	leftMotor.run_timed(speed_sp=direction*500, time_sp=timeLength)
 	rightMotor.run_timed(speed_sp=-1*direction*500, time_sp=timeLength)
-	return time.time()
+	return 1
 
 def drive():
 	"""
@@ -65,6 +65,8 @@ def drive():
 		leftMotor.run_direct(duty_cycle_sp=100)
 		rightMotor.run_direct(duty_cycle_sp=100)
 		time.sleep(0.1)
+	leftMotor.stop()
+	rightMotor.stop()
 	return "Lost" # Position unknown
 
 
@@ -72,12 +74,12 @@ def main():
 	"""
 	Main function of the program.
 	"""
-	before = startup()
+	init = startup()
 	timeTaken, half = locate()
 	print("Time taken:", timeTaken)
-	after = turn(timeTaken, half)
-	time.sleep(3 - (after - before))
+	time.sleep(3 - (timeTaken - init))
 	# Need to wait here for until the 3 seconds is up
+	turn(timeTaken, half)
 	while True:
 		if drive() == "Lost":
 			turn(*locate())
