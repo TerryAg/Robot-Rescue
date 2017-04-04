@@ -89,6 +89,7 @@ def main():
     rightMotor.position = 0 # Defining the starting point as 0
     startup()
     pos, dirr = locate_first()
+    print(pos, dirr)
     sensorMotor.run_to_abs_pos(position_sp=0, speed_sp=700)
     #sleep(3 - (timeTaken - init))
     # Need to wait here until the 3 seconds are up
