@@ -1,8 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 300
-BASE_MOTOR_SPEED = 150
+ROBOT_DISTANCE = 500
 
 rightMotor = LargeMotor(OUTPUT_A)
 leftMotor = LargeMotor(OUTPUT_D)
@@ -19,7 +18,7 @@ def startup():
     The robot must stay still for 3 seconds before it can move
     """
     backspace_pressed = False
-    print("Ready to start. Press the backspace button to resume.\n")
+    print("Ready to start. Press the backspace button to resume.")
     while not backspace_pressed:
         backspace_pressed = btn.backspace
 
@@ -39,15 +38,15 @@ def locate_first():
                 return abs(sensorMotor.position), -1
         if not sensorMotor.state:
             print("turning around")
-            sensorMotor.run_to_abs_pos(position_sp=-159, speed_sp=250)
+            sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250)
 
 def locate_subsequent():
     """
     Different to first locate since now we are turning while locating 
     -- not using sensorMotor
     """
-    leftMotor.run_to_rel_pos(position_sp=360, speed_sp=250)
-    rightMotor.run_to_rel_pos(position_sp=-360, speed_sp=250)
+    leftMotor.run_to_rel_pos(position_sp=1080, speed_sp=550) # Change to do a full revolution
+    rightMotor.run_to_rel_pos(position_sp=-1080, speed_sp=550)
     while True:
         distance = us.value()
         if distance < ROBOT_DISTANCE:
@@ -60,7 +59,7 @@ def turn(n, d):
     """
     Turns the robot around towards the other robot.
 
-    Determined through the time it took to find the other robot with the sensor.
+    Determined through the position of the sensorMotor when it found the other robot.
     """
     leftMotor.run_to_abs_pos(position_sp=n*d)
     rightMotor.run_to_abs_pos(position_sp=-1*n*d)
@@ -71,14 +70,20 @@ def drive():
     Drives the robot in the current direction as fast as it can.
     """
     while us.value() < ROBOT_DISTANCE:
-        leftMotor.run_direct(duty_cycle_sp=20)
-        rightMotor.run_direct(duty_cycle_sp=20)
+        leftMotor.run_direct(duty_cycle_sp=100)
+        rightMotor.run_direct(duty_cycle_sp=100)
         sleep(0.1)
 
     print("Can't find other robot... Relocating")
     leftMotor.stop()
     rightMotor.stop()
     return "lost" # Position unknown
+
+def fluctuate():
+    """DO NOT USE"""
+    sensorMotor.run_to_abs_pos(position_sp=-25)
+    sleep(0.1)
+    sensorMotor.run_to_abs_pos(position_sp=25)
 
 def main():
     """
@@ -87,16 +92,18 @@ def main():
     sensorMotor.position = 0
     leftMotor.position = 0
     rightMotor.position = 0 # Defining the starting point as 0
-    startup()
+    input("READY TO START?")
+    sleep(2)
     pos, dirr = locate_first()
     print(pos, dirr)
-    sensorMotor.run_to_abs_pos(position_sp=0, speed_sp=700)
+    sensorMotor.run_to_abs_pos(position_sp=10)
     #sleep(3 - (timeTaken - init))
     # Need to wait here until the 3 seconds are up
    # input("READY TO TURN FIRST TIME")
     turn(3*pos, dirr)
     #input("IT HAS TURNED FOR THE FRIST TIME!!!")
     while True:
+        #fluctuate()
      #   input("READY TO DRIVE?")
         if drive() == "lost":
       #      input("IT IS LOST... RELOCATING")
