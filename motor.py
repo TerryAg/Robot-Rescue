@@ -1,7 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 500
+ROBOT_DISTANCE = 300
 
 rightMotor = LargeMotor(OUTPUT_A)
 leftMotor = LargeMotor(OUTPUT_D)
@@ -29,6 +29,7 @@ def locate_first():
     direction = None
     while True:
         distance = us.value()
+        print(distance)
         if distance < ROBOT_DISTANCE:
             sensorMotor.stop()
             pos = sensorMotor.position
@@ -49,6 +50,7 @@ def locate_subsequent():
     rightMotor.run_timed(time_sp=10000, speed_sp=550)
     while True:
         distance = us.value()
+        print(distance)
         if distance < ROBOT_DISTANCE:
             leftMotor.stop()
             rightMotor.stop()
@@ -61,14 +63,15 @@ def turn(n, d):
 
     Determined through the position of the sensorMotor when it found the other robot.
     """
-    leftMotor.run_to_abs_pos(position_sp=-1*n*d)
-    rightMotor.run_to_abs_pos(position_sp=n*d)
+    leftMotor.run_to_abs_pos(position_sp=n*d)
+    rightMotor.run_to_abs_pos(position_sp=-1*n*d)
     return 1
 
 def drive():
     """
     Drives the robot in the current direction as fast as it can.
     """
+    input("BEGINNIGNG OF DRIVE")
     while us.value() < ROBOT_DISTANCE:
         leftMotor.run_direct(duty_cycle_sp=100)
         rightMotor.run_direct(duty_cycle_sp=100)
@@ -99,16 +102,16 @@ def main():
     sensorMotor.run_to_abs_pos(position_sp=10)
     #sleep(3 - (timeTaken - init))
     # Need to wait here until the 3 seconds are up
-   # input("READY TO TURN FIRST TIME")
-    turn(3*pos, dirr)
-    #input("IT HAS TURNED FOR THE FRIST TIME!!!")
+    input("READY TO TURN FIRST TIME")
+    turn(2.5*pos, dirr) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
+    input("IT HAS TURNED FOR THE FRIST TIME!!!")
     while True:
         #fluctuate()
-     #   input("READY TO DRIVE?")
+        input("READY TO DRIVE?")
         if drive() == "lost":
-      #      input("IT IS LOST... RELOCATING")
+            input("IT IS LOST... RELOCATING")
             locate_subsequent()
-       #     input("LOCATED!!!")
+            input("LOCATED!!!")
 
             #input("IT HAS TURNED")
         if btn.backspace: # Might need to change this to 'elif' if not possible
