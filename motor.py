@@ -38,15 +38,15 @@ def locate_first():
                 return abs(sensorMotor.position), -1
         if not sensorMotor.state:
             print("turning around")
-            sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250)
+            sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250) # change to rel?
 
 def locate_subsequent():
     """
     Different to first locate since now we are turning while locating 
     -- not using sensorMotor
     """
-    leftMotor.run_to_rel_pos(position_sp=1080, speed_sp=550) # Change to do a full revolution
-    rightMotor.run_to_rel_pos(position_sp=-1080, speed_sp=550)
+    leftMotor.run_timed(time_sp=10000, speed_sp=-550) # Change to do a full revolution
+    rightMotor.run_timed(time_sp=10000, speed_sp=550)
     while True:
         distance = us.value()
         if distance < ROBOT_DISTANCE:
@@ -61,8 +61,8 @@ def turn(n, d):
 
     Determined through the position of the sensorMotor when it found the other robot.
     """
-    leftMotor.run_to_abs_pos(position_sp=n*d)
-    rightMotor.run_to_abs_pos(position_sp=-1*n*d)
+    leftMotor.run_to_abs_pos(position_sp=-1*n*d)
+    rightMotor.run_to_abs_pos(position_sp=n*d)
     return 1
 
 def drive():
