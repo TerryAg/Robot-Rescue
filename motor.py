@@ -1,7 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 300
+ROBOT_DISTANCE = 100 # Distance between one robot and the other.
 
 rightMotor = LargeMotor(OUTPUT_A)
 leftMotor = LargeMotor(OUTPUT_D)
@@ -9,120 +9,104 @@ sensorMotor = Motor(OUTPUT_C); assert sensorMotor.connected
 us = UltrasonicSensor(INPUT_1); assert us.connected
 btn = Button()
 
-
 def startup():
-    """
-    A function run at the beginning of the program to determine
-    when to start through user input.
+	"""
+	A function run at the beginning of the program to determine
+	when to start through user input.
 
-    The robot must stay still for 3 seconds before it can move
-    """
-    backspace_pressed = False
-    print("Ready to start. Press the backspace button to resume.")
-    while not backspace_pressed:
-        backspace_pressed = btn.backspace
+	The robot must stay still for 3 seconds before it can move.
 
-    sleep(3)
+	Returns the current time when the backspace button is pressed,
+	so that we may sleep for as little as possible until 3 seconds is up.s
+	"""
+	backspace_pressed = False
+	print("Ready to start. Press the backspace button to resume.")
+	while not backspace_pressed:
+		backspace_pressed = btn.backspace
+
+	return time()
 
 def locate_first():
-    sensorMotor.run_to_abs_pos(position_sp=160, speed_sp=250)
-    direction = None
-    while True:
-        distance = us.value()
-        print(distance)
-        if distance < ROBOT_DISTANCE:
-            sensorMotor.stop()
-            pos = sensorMotor.position
-            if pos >= 0:
-                return sensorMotor.position, 1
-            else:
-                return abs(sensorMotor.position), -1
-        if not sensorMotor.state:
-            print("turning around")
-            sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250) # change to rel?
+	"""
+	Locates the other robot during the first three seconds. Only the sensorMotor runs.
+
+	Returns the position at which the other robot is found.
+	"""
+	sensorMotor.run_to_abs_pos(position_sp=160, speed_sp=250)
+	while True:
+		distance = us.value()
+		if distance < ROBOT_DISTANCE:
+			sensorMotor.stop()
+			pos = sensorMotor.position
+			if pos >= 0:
+				return sensorMotor.position, 1
+			else:
+				return abs(sensorMotor.position), -1
+		if not sensorMotor.state:
+			print("Turning around")
+			sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250)
+			if not sensorMotor.state:
+				return locate_first() # Needs testing.
 
 def locate_subsequent():
-    """
-    Different to first locate since now we are turning while locating 
-    -- not using sensorMotor
-    """
-    leftMotor.run_timed(time_sp=10000, speed_sp=-550) # Change to do a full revolution
-    rightMotor.run_timed(time_sp=10000, speed_sp=550)
-    while True:
-        distance = us.value()
-        print(distance)
-        if distance < ROBOT_DISTANCE:
-            leftMotor.stop()
-            rightMotor.stop()
-            #sleep()?
-            return 1
+	"""
+	Different to first locate since now we are turning while locating 
+	-- not using sensorMotor
+	"""
+	leftMotor.run_timed(time_sp=10000, speed_sp=-550) # Perhaps change dir depending on
+	rightMotor.run_timed(time_sp=10000, speed_sp=550) # last location seen?
+	while True:
+		distance = us.value()
+		if distance < ROBOT_DISTANCE:
+			leftMotor.stop()
+			rightMotor.stop()
+			return 1
 
-def turn(n, d):
-    """
-    Turns the robot around towards the other robot.
+def turn(pos, direction):
+	"""
+	Turns the robot around towards the other robot.
 
-    Determined through the position of the sensorMotor when it found the other robot.
-    """
-    leftMotor.run_to_abs_pos(position_sp=n*d)
-    rightMotor.run_to_abs_pos(position_sp=-1*n*d)
-    return 1
+	Determined through the position of the sensorMotor when it found the other robot.
+	"""
+	leftMotor.run_to_abs_pos(position_sp=pos*direction)
+	rightMotor.run_to_abs_pos(position_sp=-1*pos*direction)
+	while any(m.state for m in (leftMotor, rightMotor)):
+		continue # Let the motors completely turn before doing drive()
 
 def drive():
-    """
-    Drives the robot in the current direction as fast as it can.
-    """
-    input("BEGINNIGNG OF DRIVE")
-    while us.value() < ROBOT_DISTANCE:
-        leftMotor.run_direct(duty_cycle_sp=100)
-        rightMotor.run_direct(duty_cycle_sp=100)
-        sleep(0.1)
+	"""
+	Drives the robot in the current direction as fast as it can.
+	"""
+	while us.value() < ROBOT_DISTANCE:
+		leftMotor.run_direct(duty_cycle_sp=100)
+		rightMotor.run_direct(duty_cycle_sp=100)
+		sleep(0.1)
 
-    print("Can't find other robot... Relocating")
-    leftMotor.stop()
-    rightMotor.stop()
-    return "lost" # Position unknown
-
-def fluctuate():
-    """DO NOT USE"""
-    sensorMotor.run_to_abs_pos(position_sp=-25)
-    sleep(0.1)
-    sensorMotor.run_to_abs_pos(position_sp=25)
+	print("Can't find other robot... Relocating")
+	leftMotor.stop()
+	rightMotor.stop()
+	return "lost" # Position unknown.
 
 def main():
-    """
-    Main function of the program.
-    """
-    sensorMotor.position = 0
-    leftMotor.position = 0
-    rightMotor.position = 0 # Defining the starting point as 0
-    input("READY TO START?")
-    sleep(2)
-    pos, dirr = locate_first()
-    print(pos, dirr)
-    sensorMotor.run_to_abs_pos(position_sp=10)
-    #sleep(3 - (timeTaken - init))
-    # Need to wait here until the 3 seconds are up
-    input("READY TO TURN FIRST TIME")
-    turn(2.5*pos, dirr) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
-    input("IT HAS TURNED FOR THE FRIST TIME!!!")
-    while True:
-        #fluctuate()
-        input("READY TO DRIVE?")
-        if drive() == "lost":
-            input("IT IS LOST... RELOCATING")
-            locate_subsequent()
-            input("LOCATED!!!")
-
-            #input("IT HAS TURNED")
-        if btn.backspace: # Might need to change this to 'elif' if not possible
-                            # to turn program off while it's in drive()
-            leftMotor.stop()
-            rightMotor.stop()
-            print("Stopping...")
-            break
+	"""
+	Main function of the program.
+	"""
+	sensorMotor.position = 0
+	leftMotor.position = 0
+	rightMotor.position = 0 # Defining the starting point as 0.
+	init = startup()
+	enemy_pos, direction = locate_first()
+	sensorMotor.run_to_abs_pos(position_sp=10) # Reset sensorMotor back to front.
+	sleep(3-(time()-init))
+	turn(2.5*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
+	while True:
+		if drive() == "lost":
+			locate_subsequent()
+		if btn.backspace:
+			leftMotor.stop()
+			rightMotor.stop()
+			print("Stopping...")
+			break
 
 if __name__ == '__main__':
-    main()
-
-#speed_regulation_enabled?
-# Can run_timed take position? prob not
+	main()
