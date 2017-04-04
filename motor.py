@@ -100,9 +100,10 @@ def main():
 	sleep(3-(time()-init))
 	turn(2.5*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
 	while True:
-		if drive() == "lost":
-			locate_subsequent()
-		if btn.backspace:
+		try: # Test this.
+			if drive() == "lost":
+				locate_subsequent()
+		except KeyboardInterrupt:
 			leftMotor.stop()
 			rightMotor.stop()
 			print("Stopping...")
