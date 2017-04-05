@@ -1,7 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 1000 # Distance between one robot and the other.
+ROBOT_DISTANCE = 700 # Distance between one robot and the other.
 
 rightMotor = LargeMotor(OUTPUT_A); assert rightMotor.connected
 leftMotor = LargeMotor(OUTPUT_D); assert leftMotor.connected
@@ -31,7 +31,7 @@ def locate_first():
 	"""
 	Locates the other robot during the first three seconds. Only the sensorMotor runs.
 
-	Returns the position at which the other robot is found.
+	Returns the position at which the other robot is found, along with the direction.
 	"""
 	sensorMotor.run_to_abs_pos(position_sp=160, speed_sp=250)
 	while True:
@@ -44,15 +44,26 @@ def locate_first():
 			else:
 				return abs(sensorMotor.position)+30, -1
 		if not sensorMotor.state:
-			print("Turning around")
 			sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250)
 			if not sensorMotor.state:
-				return locate_first() # Needs testing.
+				return locate_first()
+
+def turn(pos, direction):
+	"""
+	Turns the robot around towards the other robot.
+
+	Determined through the position of the sensorMotor when it found the other robot.
+	"""
+	# TURN THIS INTO A WHILE LOOP?
+	leftMotor.run_to_abs_pos(position_sp=pos*direction, speed_sp=1000)
+	rightMotor.run_to_abs_pos(position_sp=-1*pos*direction, speed_sp=1000)
+	sleep(1)
 
 def locate_subsequent(direction):
 	"""
-	Different to first locate since now we are turning while locating 
-	-- not using sensorMotor
+	Turns the robot around until it finds the other robot.
+
+	This is different to locate() since the sensorMotor does not run.
 	"""
 	while True:
 		leftMotor.run_direct(duty_cycle_sp=direction*100) # Perhaps change dir depending on
@@ -63,16 +74,6 @@ def locate_subsequent(direction):
 			rightMotor.stop()
 			return 1
 		sleep(0.1)
-
-def turn(pos, direction):
-	"""
-	Turns the robot around towards the other robot.
-
-	Determined through the position of the sensorMotor when it found the other robot.
-	"""
-	leftMotor.run_to_abs_pos(position_sp=pos*direction, speed_sp=1000)
-	rightMotor.run_to_abs_pos(position_sp=-1*pos*direction, speed_sp=1000)
-	sleep(1)
 
 def drive():
 	"""
@@ -86,7 +87,7 @@ def drive():
 	print("Can't find other robot... Relocating")
 	leftMotor.stop()
 	rightMotor.stop()
-	return "lost" # Position unknown.
+	return "lost"
 
 def main():
 	"""
@@ -97,21 +98,15 @@ def main():
 	rightMotor.position = 0 # Defining the starting point as 0.
 	init = startup()
 	enemy_pos, direction = locate_first()
-	print(enemy_pos, direction)
 	sensorMotor.run_to_abs_pos(position_sp=0) # Reset sensorMotor back to front.
-	# Can we move ^ into locate_first?
 	try:
 		sleep(2-(time()-init))
 	except ValueError: # It took longer than 3 seconds
 		pass
-	print("done sleeping")
-	turn(3*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
-	#sleep(0.5)
-	print("done turning")
+	turn(3.5*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
 	while True:
-		try: # Test this.
-			res = drive()
-			if res == "lost":
+		try:
+			if drive() == "lost":
 				locate_subsequent(direction)
 		except KeyboardInterrupt:
 			leftMotor.stop()
