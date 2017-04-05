@@ -1,7 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 700 # Distance between one robot and the other.
+ROBOT_DISTANCE = 1000 # Distance between one robot and the other.
 
 rightMotor = LargeMotor(OUTPUT_A); assert rightMotor.connected
 leftMotor = LargeMotor(OUTPUT_D); assert leftMotor.connected
@@ -49,19 +49,20 @@ def locate_first():
 			if not sensorMotor.state:
 				return locate_first() # Needs testing.
 
-def locate_subsequent():
+def locate_subsequent(direction):
 	"""
 	Different to first locate since now we are turning while locating 
 	-- not using sensorMotor
 	"""
-	leftMotor.run_timed(time_sp=10000, speed_sp=-1050) # Perhaps change dir depending on
-	rightMotor.run_timed(time_sp=10000, speed_sp=1050) # last location seen?
 	while True:
+		leftMotor.run_direct(duty_cycle_sp=direction*100) # Perhaps change dir depending on
+		rightMotor.run_direct(duty_cycle_sp=-1*direction*100) # last location seen?
 		distance = us.value()
 		if distance < ROBOT_DISTANCE:
 			leftMotor.stop()
 			rightMotor.stop()
 			return 1
+		sleep(0.1)
 
 def turn(pos, direction):
 	"""
@@ -71,8 +72,7 @@ def turn(pos, direction):
 	"""
 	leftMotor.run_to_abs_pos(position_sp=pos*direction, speed_sp=1000)
 	rightMotor.run_to_abs_pos(position_sp=-1*pos*direction, speed_sp=1000)
-	sleep(0.5)
-	input("Did it turn well?")
+	sleep(1)
 
 def drive():
 	"""
@@ -112,7 +112,7 @@ def main():
 		try: # Test this.
 			res = drive()
 			if res == "lost":
-				locate_subsequent()
+				locate_subsequent(direction)
 		except KeyboardInterrupt:
 			leftMotor.stop()
 			rightMotor.stop()
