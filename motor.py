@@ -1,7 +1,7 @@
 from ev3dev.ev3 import *
 from time import sleep, time
 
-ROBOT_DISTANCE = 700 # Distance between one robot and the other.
+ROBOT_DISTANCE = 500 # Distance between one robot and the other.
 
 rightMotor = LargeMotor(OUTPUT_A); assert rightMotor.connected
 leftMotor = LargeMotor(OUTPUT_D); assert leftMotor.connected
@@ -103,7 +103,10 @@ def main():
 		sleep(2-(time()-init))
 	except ValueError: # It took longer than 3 seconds
 		pass
-	turn(3.5*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
+	if direction == -1:
+		turn(2.3*enemy_pos, direction) # 2.5 MIGHT NEED CHANGING DEPENDING ON SURFACE OF PLAYING AREA
+	else:
+		turn(2.3*enemy_pos, direction)
 	while True:
 		try:
 			if drive() == "lost":
