@@ -10,6 +10,7 @@ sensorMotor = Motor(OUTPUT_C); assert sensorMotor.connected
 us = UltrasonicSensor(INPUT_1); assert us.connected
 btn = Button()
 
+
 def startup():
 	"""
 	A function run at the beginning of the program to determine
@@ -27,6 +28,7 @@ def startup():
 
 	sleep(1) # Gives the presser some time to get out of the way.
 	return time()
+
 
 def locate_first():
 	"""
@@ -53,6 +55,7 @@ def locate_first():
 			sensorMotor.run_to_abs_pos(position_sp=-270, speed_sp=250)
 			if not sensorMotor.state: # Again... if it hasn't found anything... reset.
 				return locate_first()
+			
 
 def turn(pos, direction):
 	"""
@@ -63,6 +66,7 @@ def turn(pos, direction):
 	leftMotor.run_to_abs_pos(position_sp=pos*direction, speed_sp=1000)
 	rightMotor.run_to_abs_pos(position_sp=-1*pos*direction, speed_sp=1000)
 	sleep(1) # We sleep here to give the robot time to turn.
+	
 
 def locate_subsequent(direction):
 	"""
@@ -80,6 +84,7 @@ def locate_subsequent(direction):
 			rightMotor.stop()
 			return 1 # Breaks the loop.
 		sleep(0.1)
+		
 
 def drive():
 	"""
@@ -95,6 +100,7 @@ def drive():
 	leftMotor.stop()
 	rightMotor.stop()
 	return "lost"
+
 
 def main():
 	"""
@@ -126,5 +132,6 @@ def main():
 			print("Stopping...")
 			break
 
+			
 if __name__ == '__main__': # "if we are running the script directly"
 	main() # This is useful since it prevents other files from running this code.
