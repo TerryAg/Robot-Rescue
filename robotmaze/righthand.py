@@ -1,11 +1,13 @@
+# This script was used in the preliminary round, where
+# only finding the can was necessary for the task.
+# It implemented a right-hand wall method, which was
+# also ultimately used in the final too.
+
 from ev3dev.ev3 import *
 from time import sleep, time
 
-# Wall searching method
-
 rightMotor = LargeMotor(OUTPUT_A); assert rightMotor.connected
 leftMotor = LargeMotor(OUTPUT_B); assert leftMotor.connected
-#sensorMotor = Motor(OUTPUT_D); assert sensorMotor.connected
 usBottom = UltrasonicSensor(INPUT_3); assert usBottom.connected
 usTop = UltrasonicSensor(INPUT_2); assert usTop.connected # Rotating one.
 cs = ColorSensor(); assert cs.connected

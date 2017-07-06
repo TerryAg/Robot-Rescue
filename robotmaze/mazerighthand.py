@@ -1,7 +1,7 @@
 # ENGG1000 Robot Rescue 2017
 # By 'Salty Robot'
 
-# Terry Agapitos (z5162173)
+# Terry Agapitos (z5162173) <t.agapitos@student.unsw.edu.au>
 # Lachlan Chow (z5164192)
 # Lucas Way (z5164204)
 # Arthur Ching (z5162176)
@@ -10,6 +10,8 @@
 
 # Implements the right-hand rule, with some random elements
 # as explained in the Rescue Report.
+# This is the final version of the assignment, and was the script
+# used on the day of performance.
 
 from ev3dev.ev3 import *
 from time import sleep, time
@@ -95,7 +97,6 @@ def turn_180(start):
         rightMotor.run_direct(duty_cycle_sp=-25)
     stop_motors()
     reset_gyro()
-
 
 def turn_right():
     """

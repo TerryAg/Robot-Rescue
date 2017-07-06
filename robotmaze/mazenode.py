@@ -1,7 +1,9 @@
+# This script implements a Depth-first search (DFS), but it was
+# never used - largely because of inaccuracies with the robot.
+
 from ev3dev.ev3 import *
 from time import sleep, time
 import sys
-# Right-hand rule
 
 rightMotor = LargeMotor(OUTPUT_D)
 leftMotor = LargeMotor(OUTPUT_A)
